@@ -358,5 +358,5 @@ h1 em, h2 em, h3 em { color: #d7ad73; font-style: normal; }
   .modal-reader-toolbar button { min-width: 36px; height: 34px; }
   .modal-reader-toolbar small { display: none; }
   .modal-reader-pages { gap: 8px; }
-  .modal-reader-pages img { width: 100%; box-shadow: 0 3px 10px rgba(0,0,0,.18); }
+  .modal-reader-pages img { width: 100%; height: auto; min-height: 0; max-height: none; object-fit: contain; box-shadow: 0 3px 10px rgba(0,0,0,.18); }
 }
