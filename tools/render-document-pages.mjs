@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -42,10 +42,15 @@ for (const filename of files) {
       path.join(outDir, 'page'),
     ], { stdio: 'ignore' });
 
-    for (let page = 1; page <= pages; page += 1) {
-      const source = path.join(outDir, `page-${page}.jpg`);
-      const target = path.join(outDir, `page-${String(page).padStart(3, '0')}.jpg`);
-      if (existsSync(source) && source !== target) renameSync(source, target);
+    for (const sourceName of readdirSync(outDir).filter((name) => /^page-\d+\.jpg$/.test(name))) {
+      const page = Number(sourceName.match(/page-(\d+)\.jpg/)[1]);
+      const targetName = `page-${String(page).padStart(3, '0')}.jpg`;
+      const source = path.join(outDir, sourceName);
+      const target = path.join(outDir, targetName);
+      if (sourceName !== targetName) {
+        if (existsSync(target)) unlinkSync(source);
+        else renameSync(source, target);
+      }
     }
     renderedPages += pages;
     console.log(`rendered ${filename}: ${pages} pages`);
