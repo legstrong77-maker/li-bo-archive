@@ -1,6 +1,13 @@
 (() => {
   const data = window.ARCHIVE_DATA || { resources: [], timeline: [] };
-  const resources = data.resources || [];
+  const hostedDocumentBase = 'https://github.com/legstrong77-maker/li-bo-archive/releases/download/v1.0-content/';
+  const isGitHubPages = typeof location !== 'undefined' && location.hostname.endsWith('github.io');
+  const resources = (data.resources || []).map((item) => {
+    if (isGitHubPages && item.localFile?.startsWith('assets/documents/')) {
+      return { ...item, localFile: `${hostedDocumentBase}${item.localFile.split('/').pop()}` };
+    }
+    return item;
+  });
   const timeline = data.timeline || [];
   const state = { kind: 'all', category: 'all', query: '', visible: 12, timelineYear: 'all' };
   const typeLabels = { document: '文件 DOCUMENT', video: '影音 VIDEO', link: '連結 LINK' };
