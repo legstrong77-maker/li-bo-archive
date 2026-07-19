@@ -199,7 +199,32 @@
       const source = new URL(`${entry.directory}/page-${page}.jpg`, document.baseURI).href;
       return `<img src="${escapeHtml(source)}" alt="${escapeHtml(item.title)} 第 ${index + 1} 頁" loading="lazy" decoding="async" />`;
     }).join('');
-    reader.innerHTML = `<div class="modal-reader-pages">${pageImages}</div>`;
+    reader.innerHTML = `
+      <div class="modal-reader-toolbar" role="toolbar" aria-label="文件閱讀控制">
+        <button type="button" data-reader-zoom-out aria-label="縮小文件">−</button>
+        <span data-reader-zoom>100%</span>
+        <button type="button" data-reader-zoom-in aria-label="放大文件">＋</button>
+        <button type="button" class="modal-reader-fit" data-reader-fit>適合寬度</button>
+        <small>橫向文件可左右滑動</small>
+      </div>
+      <div class="modal-reader-pages">${pageImages}</div>`;
+    bindReaderControls(reader);
+  };
+
+  const bindReaderControls = (reader) => {
+    let zoom = 1;
+    const zoomLabel = qs('[data-reader-zoom]', reader);
+    const images = qsa('.modal-reader-pages img', reader);
+    const updateZoom = (nextZoom) => {
+      zoom = Math.max(1, Math.min(2.5, nextZoom));
+      reader.dataset.zoomed = zoom > 1 ? 'true' : 'false';
+      const width = zoom === 1 ? '' : `${Math.round(zoom * 100)}%`;
+      images.forEach((image) => { image.style.width = width; image.style.maxWidth = zoom === 1 ? '' : 'none'; });
+      if (zoomLabel) zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+    };
+    qs('[data-reader-zoom-out]', reader)?.addEventListener('click', () => updateZoom(zoom - 0.25));
+    qs('[data-reader-zoom-in]', reader)?.addEventListener('click', () => updateZoom(zoom + 0.25));
+    qs('[data-reader-fit]', reader)?.addEventListener('click', () => updateZoom(1));
   };
 
   const openModal = (item) => {
