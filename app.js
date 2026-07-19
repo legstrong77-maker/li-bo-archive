@@ -190,9 +190,12 @@
     else modalNote.textContent = item.note || '這則社群分享目前保留李博的摘要與日期；原始頁面需要外部平台權限，本站不會將你導向外部連結。';
     const modalMedia = qs('[data-modal-media]');
     if (item.localFile) {
-      const readerSrc = isGitHubPages && item.localFile.startsWith(hostedDocumentBase)
+      const drivePreview = isGitHubPages && item.driveId
+        ? `https://drive.google.com/file/d/${item.driveId}/preview`
+        : '';
+      const readerSrc = drivePreview || (isGitHubPages && item.localFile.startsWith(hostedDocumentBase)
         ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(item.localFile)}`
-        : `${item.localFile}#page=1&zoom=page-width`;
+        : `${item.localFile}#page=1&zoom=page-width`);
       modalMedia.innerHTML = `<iframe class="modal-pdf" src="${escapeHtml(readerSrc)}" title="${escapeHtml(item.title)}" loading="lazy"></iframe>`;
     }
     else if (item.thumbnail) modalMedia.innerHTML = `<img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)} 預覽" onerror="this.style.display='none'" />`;
