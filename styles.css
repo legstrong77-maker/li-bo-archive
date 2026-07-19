@@ -240,6 +240,13 @@ h1 em, h2 em, h3 em { color: #d7ad73; font-style: normal; }
 .modal-card.is-document-reader .modal-content p, .modal-card.is-document-reader .modal-content .outline-button { display: none !important; }
 .modal-card.is-document-reader .modal-media { order: 2; min-height: 0; height: 100%; background: #3a3d3c; }
 .modal-card.is-document-reader .modal-pdf { min-height: 0; height: 100%; }
+.modal-page-reader { width: 100%; height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: 16px; background: #3a3d3c; scrollbar-gutter: stable; }
+.modal-page-reader::-webkit-scrollbar { width: 10px; }
+.modal-page-reader::-webkit-scrollbar-track { background: rgba(255,255,255,.08); }
+.modal-page-reader::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 999px; background: #8ca095; background-clip: padding-box; }
+.modal-reader-pages { display: grid; gap: 14px; justify-items: center; }
+.modal-reader-pages img { display: block; width: min(100%, 1200px); height: auto; background: var(--white); box-shadow: 0 8px 22px rgba(0,0,0,.2); }
+.modal-reader-status { display: grid; place-items: center; min-height: 240px; color: rgba(255,255,255,.72); font-size: 13px; text-align: center; }
 
 .reveal { opacity: 0; transform: translateY(20px); transition: opacity .7s ease, transform .7s ease; }
 .reveal.is-visible { opacity: 1; transform: translateY(0); }
@@ -339,4 +346,7 @@ h1 em, h2 em, h3 em { color: #d7ad73; font-style: normal; }
   .modal-card.is-document-reader .modal-content { min-height: 82px; padding: 14px 62px 13px 17px; }
   .modal-card.is-document-reader .modal-content h2 { font-size: 19px; }
   .modal-card.is-document-reader .modal-media, .modal-card.is-document-reader .modal-pdf { height: 100%; min-height: 0; }
+  .modal-page-reader { padding: 7px; }
+  .modal-reader-pages { gap: 8px; }
+  .modal-reader-pages img { width: 100%; box-shadow: 0 3px 10px rgba(0,0,0,.18); }
 }

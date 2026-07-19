@@ -9,6 +9,10 @@
     return item;
   });
   const timeline = data.timeline || [];
+  const pageManifestPromise = fetch(new URL('assets/document-pages/manifest.json', document.baseURI))
+    .then((response) => response.ok ? response.json() : {})
+    .catch(() => ({}));
+  let readerToken = 0;
   const state = { kind: 'all', category: 'all', query: '', visible: 12, timelineYear: 'all' };
   const typeLabels = { document: '文件 DOCUMENT', video: '影音 VIDEO', link: '連結 LINK' };
   const kindNames = { document: '文件', video: '影音', link: '外部連結' };
@@ -179,24 +183,42 @@
     qs('[data-timeline-count]').textContent = `${entries.length} 個時間節點`;
   };
 
+  const renderDocumentPages = async (item, token) => {
+    const reader = qs('[data-modal-page-reader]');
+    if (!reader) return;
+    const filename = decodeURIComponent((item.localFile || '').split('/').pop().split('#')[0]);
+    const manifest = await pageManifestPromise;
+    if (token !== readerToken || !qs('[data-modal]').classList.contains('is-open')) return;
+    const entry = manifest[filename];
+    if (!entry) {
+      reader.innerHTML = '<div class="modal-reader-status">這份文件的頁面資產尚未準備好，請稍後再試。</div>';
+      return;
+    }
+    const pageImages = Array.from({ length: entry.pages }, (_, index) => {
+      const page = String(index + 1).padStart(3, '0');
+      const source = new URL(`${entry.directory}/page-${page}.jpg`, document.baseURI).href;
+      return `<img src="${escapeHtml(source)}" alt="${escapeHtml(item.title)} 第 ${index + 1} 頁" loading="lazy" decoding="async" />`;
+    }).join('');
+    reader.innerHTML = `<div class="modal-reader-pages">${pageImages}</div>`;
+  };
+
   const openModal = (item) => {
     const modal = qs('[data-modal]');
     qs('[data-modal-meta]').textContent = `${formatDate(item.date)}  ·  ${kindNames[item.kind]}  ·  ${item.category}`;
     qs('[data-modal-title]').textContent = item.title;
     const modalNote = qs('[data-modal-note]');
-    if (item.localFile && item.kind === 'document') modalNote.textContent = `${item.note || '李博在生活存檔裡留下的一份文件。'} 這份文件已收錄到本站，左側可直接閱讀完整內容。`;
+    if (item.localFile && item.kind === 'document') modalNote.textContent = `${item.note || '李博在生活存檔裡留下的一份文件。'} 這份文件已收錄到本站，閱讀視窗內可直接查看完整內容。`;
     else if (item.localFile) modalNote.textContent = `${item.note || '李博在生活存檔裡留下的一份分享。'} 這則內容已轉為本站快照，可直接在這裡閱讀。`;
     else if (item.kind === 'video') modalNote.textContent = item.note || '李博分享的一部影片。影片播放保留在 YouTube。';
     else modalNote.textContent = item.note || '這則社群分享目前保留李博的摘要與日期；原始頁面需要外部平台權限，本站不會將你導向外部連結。';
     const modalMedia = qs('[data-modal-media]');
-    if (item.localFile) {
-      const drivePreview = isGitHubPages && item.driveId
-        ? `https://drive.google.com/file/d/${item.driveId}/preview`
-        : '';
-      const readerSrc = drivePreview || (isGitHubPages && item.localFile.startsWith(hostedDocumentBase)
-        ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(item.localFile)}`
-        : `${item.localFile}#page=1&zoom=page-width`);
-      modalMedia.innerHTML = `<iframe class="modal-pdf" src="${escapeHtml(readerSrc)}" title="${escapeHtml(item.title)}" loading="lazy"></iframe>`;
+    const isPdfDocument = item.kind === 'document' && /\.pdf$/i.test(item.localFile || '');
+    const token = ++readerToken;
+    if (isPdfDocument) {
+      modalMedia.innerHTML = '<div class="modal-page-reader" data-modal-page-reader><div class="modal-reader-status">正在準備本站閱讀頁面…</div></div>';
+      renderDocumentPages(item, token);
+    } else if (item.localFile) {
+      modalMedia.innerHTML = `<iframe class="modal-pdf" src="${escapeHtml(item.localFile)}" title="${escapeHtml(item.title)}" loading="lazy"></iframe>`;
     }
     else if (item.thumbnail) modalMedia.innerHTML = `<img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)} 預覽" onerror="this.style.display='none'" />`;
     else modalMedia.innerHTML = '<div class="modal-media-placeholder"><span>LB</span></div>';
@@ -216,6 +238,7 @@
     qs('[data-modal-close]').focus();
   };
   const closeModal = () => {
+    readerToken += 1;
     const modal = qs('[data-modal]');
     modal.querySelector('.modal-card').classList.remove('is-document-reader');
     modal.classList.remove('is-open');
