@@ -189,7 +189,12 @@
     else if (item.kind === 'video') modalNote.textContent = item.note || '李博分享的一部影片。影片播放保留在 YouTube。';
     else modalNote.textContent = item.note || '這則社群分享目前保留李博的摘要與日期；原始頁面需要外部平台權限，本站不會將你導向外部連結。';
     const modalMedia = qs('[data-modal-media]');
-    if (item.localFile) modalMedia.innerHTML = `<iframe class="modal-pdf" src="${escapeHtml(item.localFile)}#page=1&zoom=page-width" title="${escapeHtml(item.title)}" loading="lazy"></iframe>`;
+    if (item.localFile) {
+      const readerSrc = isGitHubPages && item.localFile.startsWith(hostedDocumentBase)
+        ? `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(item.localFile)}`
+        : `${item.localFile}#page=1&zoom=page-width`;
+      modalMedia.innerHTML = `<iframe class="modal-pdf" src="${escapeHtml(readerSrc)}" title="${escapeHtml(item.title)}" loading="lazy"></iframe>`;
+    }
     else if (item.thumbnail) modalMedia.innerHTML = `<img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)} 預覽" onerror="this.style.display='none'" />`;
     else modalMedia.innerHTML = '<div class="modal-media-placeholder"><span>LB</span></div>';
     const modalLink = qs('[data-modal-link]');
